@@ -13,9 +13,9 @@ class Boy:
             initial='IDLE',
             auto_transitions=False,
         )
-    def update(self):
+    def update(self, frame_time):
         if self.state == 'IDLE':
-            self.frame = (self.frame + 1) % 8
+            self.frame = (self.frame + 8.0 * frame_time) % 8
     def draw(self):
         if self.state == 'IDLE':
-            self.image.clip_draw(self.frame * 100, 300, 100, 100,self.x, self.y)
+            self.image.clip_draw(int(self.frame) * 100, 300, 100, 100,self.x, self.y)

@@ -1,64 +1,43 @@
-from pico2d import *
-import random
+from pico2d import (
+    SDL_KEYDOWN, SDL_QUIT, SDLK_ESCAPE, clear_canvas, close_canvas,
+    delay, get_events, get_time, open_canvas, update_canvas,
+)
 
 from grass import Grass
 from boy import Boy
 
 
-# Game object class here
-
-
-
-
-
-
-def handle_events():
-    global running
-
-    event_list = get_events()
-    for event in event_list:
+def handle_events(boy):
+    for event in get_events():
         if event.type == SDL_QUIT:
-            running = False
-        elif event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
-            running = False
+            return False
+        if event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
+            return False
+    return True
 
 
-def reset_world():
-    global world
-    global boy
+def main():
+    open_canvas(800, 600)
+    try:
+        boy = Boy()
+        world = [Grass(), boy]
+        previous_time = get_time()
+        while handle_events(boy):
+            current_time = get_time()
+            frame_time = max(0.0, current_time - previous_time)
+            previous_time = current_time
 
-    world = []
+            for obj in world:
+                obj.update(frame_time)
 
-    grass = Grass()
-    world.append(grass)
-
-    boy = Boy()
-    world.append(boy)
-
-
-
-def update_world():
-    for o in world:
-        o.update()
-    pass
-
-
-def render_world():
-    clear_canvas()
-    for o in world:
-        o.draw()
-    update_canvas()
+            clear_canvas()
+            for obj in world:
+                obj.draw()
+            update_canvas()
+            delay(0.01)
+    finally:
+        close_canvas()
 
 
-running = True
-
-open_canvas()
-reset_world()
-# game loop
-while running:
-    handle_events()
-    update_world()
-    render_world()
-    delay(0.01)
-# finalization code
-close_canvas()
+if __name__ == '__main__':
+    main()
