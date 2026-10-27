@@ -96,6 +96,7 @@ class Boy:
                 {'trigger': 'stop_run', 'source': 'RUN', 'dest': 'IDLE'},
                 {'trigger': 'start_auto_run', 'source': 'IDLE', 'dest': 'AUTO_RUN'},
                 {'trigger': 'finish_auto_run', 'source': 'AUTO_RUN', 'dest': 'IDLE'},
+                {'trigger': 'cancel_auto_run', 'source': 'AUTO_RUN', 'dest': 'RUN'},
             ],
             initial='IDLE',
             auto_transitions=False,
@@ -127,6 +128,8 @@ class Boy:
             self.direction = KEY_DIRECTIONS[self.held_keys[-1]]
             if self.state == 'IDLE':
                 self.start_run()
+            elif self.state == 'AUTO_RUN':
+                self.cancel_auto_run()
         elif self.state == 'RUN':
             self.stop_run()
 
