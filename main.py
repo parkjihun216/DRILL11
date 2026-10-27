@@ -4,7 +4,7 @@ from pico2d import (
 )
 
 from grass import Grass
-from boy import Boy
+from boy import Boy, CANVAS_WIDTH
 
 
 def handle_events(boy):
@@ -18,7 +18,7 @@ def handle_events(boy):
 
 
 def main():
-    open_canvas(800, 600)
+    open_canvas(CANVAS_WIDTH, 600)
     try:
         boy = Boy()
         world = [Grass(), boy]

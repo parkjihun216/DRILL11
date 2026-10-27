@@ -86,9 +86,9 @@ class Boy:
         self.frame = 0
         self.direction = 1
         self.held_keys = []
-        self.image = load_image('animation_sheet.png')
+        self.image = load_image(str(Path(__file__).with_name('animation_sheet.png')))
         self.state_classes = {'IDLE': Idle, 'RUN': Run, 'AUTO_RUN': AutoRun}
-        self.machine = Machine( 
+        self.machine = Machine(
             model=self,
             states=list(self.state_classes),
             transitions=[
@@ -150,3 +150,5 @@ class Boy:
 
     def draw(self):
         self.state_classes[self.state].draw(self)
+from pathlib import Path
+
