@@ -47,11 +47,26 @@ class AutoRun:
     def enter(boy):
         boy.frame = 0.0
         boy.held_keys.clear()
+        left, right = AutoRun.bounds()
+        boy.x = max(left, min(right, boy.x))
+
+    @staticmethod
+    def bounds():
+        half_size = SPRITE_SIZE * AUTO_RUN_SCALE / 2
+        return half_size, CANVAS_WIDTH - half_size
 
     @staticmethod
     def update(boy, frame_time):
         boy.animate(frame_time)
-        boy.x += boy.direction * AUTO_RUN_SPEED * frame_time
+        left, right = AutoRun.bounds()
+        span = right - left
+        # Fold travel along a round trip, retaining distance even after multiple bounces.
+        phase = boy.x - left if boy.direction > 0 else 2 * span - (boy.x - left)
+        phase = (phase + AUTO_RUN_SPEED * frame_time) % (2 * span)
+        if phase < span:
+            boy.x, boy.direction = left + phase, 1
+        else:
+            boy.x, boy.direction = right - (phase - span), -1
 
     @staticmethod
     def draw(boy):
