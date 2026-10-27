@@ -1,4 +1,4 @@
-from pico2d import SDL_KEYDOWN, SDL_KEYUP, SDLK_LEFT, SDLK_RIGHT, load_image
+from pico2d import SDL_KEYDOWN, SDL_KEYUP, SDLK_LEFT, SDLK_RIGHT, SDLK_a, load_image
 from transitions import Machine
 
 FRAME_COUNT = 8
@@ -6,6 +6,8 @@ ANIMATION_FPS = 8.0
 SPRITE_SIZE = 100
 CANVAS_WIDTH = 800
 RUN_SPEED = 200.0  # pixels per second
+AUTO_RUN_SPEED = RUN_SPEED * 2
+AUTO_RUN_SCALE = 1.5
 KEY_DIRECTIONS = {SDLK_LEFT: -1, SDLK_RIGHT: 1}
 
 
@@ -40,6 +42,22 @@ class Run:
         boy.draw_sprite(100 if boy.direction > 0 else 0)
 
 
+class AutoRun:
+    @staticmethod
+    def enter(boy):
+        boy.frame = 0.0
+        boy.held_keys.clear()
+
+    @staticmethod
+    def update(boy, frame_time):
+        boy.animate(frame_time)
+        boy.x += boy.direction * AUTO_RUN_SPEED * frame_time
+
+    @staticmethod
+    def draw(boy):
+        boy.draw_sprite(100 if boy.direction > 0 else 0, AUTO_RUN_SCALE)
+
+
 class Boy:
     def __init__(self):
         self.x, self.y = 400, 90
@@ -47,13 +65,14 @@ class Boy:
         self.direction = 1
         self.held_keys = []
         self.image = load_image('animation_sheet.png')
-        self.state_classes = {'IDLE': Idle, 'RUN': Run}
+        self.state_classes = {'IDLE': Idle, 'RUN': Run, 'AUTO_RUN': AutoRun}
         self.machine = Machine( 
             model=self,
             states=list(self.state_classes),
             transitions=[
                 {'trigger': 'start_run', 'source': 'IDLE', 'dest': 'RUN'},
                 {'trigger': 'stop_run', 'source': 'RUN', 'dest': 'IDLE'},
+                {'trigger': 'start_auto_run', 'source': 'IDLE', 'dest': 'AUTO_RUN'},
             ],
             initial='IDLE',
             auto_transitions=False,
@@ -66,6 +85,11 @@ class Boy:
 
     def handle_event(self, event):
         if event.type not in (SDL_KEYDOWN, SDL_KEYUP):
+            return
+        if event.key == SDLK_a:
+            if event.type == SDL_KEYDOWN and not getattr(event, 'repeat', False):
+                if self.state == 'IDLE':
+                    self.start_auto_run()
             return
         if event.key not in KEY_DIRECTIONS:
             return
@@ -88,9 +112,11 @@ class Boy:
 
     def draw_sprite(self, row, scale=1.0):
         size = SPRITE_SIZE * scale
+        # Keep the feet at the same height when the sprite grows.
+        draw_y = self.y + (size - SPRITE_SIZE) / 2
         self.image.clip_draw(
             int(self.frame) * SPRITE_SIZE, row, SPRITE_SIZE, SPRITE_SIZE,
-            self.x, self.y, size, size,
+            self.x, draw_y, size, size,
         )
 
     def update(self, frame_time):
