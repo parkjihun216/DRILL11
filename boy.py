@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from pico2d import SDL_KEYDOWN, SDL_KEYUP, SDLK_LEFT, SDLK_RIGHT, SDLK_a, load_image
 from transitions import Machine
 
@@ -150,5 +152,3 @@ class Boy:
 
     def draw(self):
         self.state_classes[self.state].draw(self)
-from pathlib import Path
-

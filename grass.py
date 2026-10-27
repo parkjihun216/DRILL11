@@ -1,3 +1,5 @@
+from pathlib import Path
+
 from pico2d import load_image
 
 class Grass:
@@ -9,5 +11,3 @@ class Grass:
 
     def update(self, frame_time):
         pass
-from pathlib import Path
-
