@@ -13,6 +13,7 @@ def handle_events(boy):
             return False
         if event.type == SDL_KEYDOWN and event.key == SDLK_ESCAPE:
             return False
+        boy.handle_event(event)
     return True
 
 
