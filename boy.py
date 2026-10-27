@@ -8,6 +8,7 @@ CANVAS_WIDTH = 800
 RUN_SPEED = 200.0  # pixels per second
 AUTO_RUN_SPEED = RUN_SPEED * 2
 AUTO_RUN_SCALE = 1.5
+AUTO_RUN_DURATION = 5.0
 KEY_DIRECTIONS = {SDLK_LEFT: -1, SDLK_RIGHT: 1}
 
 
@@ -47,6 +48,7 @@ class AutoRun:
     def enter(boy):
         boy.frame = 0.0
         boy.held_keys.clear()
+        boy.auto_run_elapsed = 0.0
         left, right = AutoRun.bounds()
         boy.x = max(left, min(right, boy.x))
 
@@ -57,16 +59,21 @@ class AutoRun:
 
     @staticmethod
     def update(boy, frame_time):
-        boy.animate(frame_time)
+        remaining = AUTO_RUN_DURATION - boy.auto_run_elapsed
+        active_time = min(frame_time, remaining)
+        boy.auto_run_elapsed = min(AUTO_RUN_DURATION, boy.auto_run_elapsed + frame_time)
+        boy.animate(active_time)
         left, right = AutoRun.bounds()
         span = right - left
         # Fold travel along a round trip, retaining distance even after multiple bounces.
         phase = boy.x - left if boy.direction > 0 else 2 * span - (boy.x - left)
-        phase = (phase + AUTO_RUN_SPEED * frame_time) % (2 * span)
+        phase = (phase + AUTO_RUN_SPEED * active_time) % (2 * span)
         if phase < span:
             boy.x, boy.direction = left + phase, 1
         else:
             boy.x, boy.direction = right - (phase - span), -1
+        if boy.auto_run_elapsed >= AUTO_RUN_DURATION:
+            boy.finish_auto_run()
 
     @staticmethod
     def draw(boy):
@@ -88,6 +95,7 @@ class Boy:
                 {'trigger': 'start_run', 'source': 'IDLE', 'dest': 'RUN'},
                 {'trigger': 'stop_run', 'source': 'RUN', 'dest': 'IDLE'},
                 {'trigger': 'start_auto_run', 'source': 'IDLE', 'dest': 'AUTO_RUN'},
+                {'trigger': 'finish_auto_run', 'source': 'AUTO_RUN', 'dest': 'IDLE'},
             ],
             initial='IDLE',
             auto_transitions=False,
@@ -135,7 +143,7 @@ class Boy:
         )
 
     def update(self, frame_time):
-        self.state_classes[self.state].update(self, frame_time)
+        self.state_classes[self.state].update(self, max(0.0, frame_time))
 
     def draw(self):
         self.state_classes[self.state].draw(self)
